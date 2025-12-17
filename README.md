@@ -166,3 +166,10 @@ remote_alarm/
 ## License
 
 MIT - Do whatever you want with it!
+
+
+## creating the alarm sound
+
+ffmpeg -i nurit.mp3 -ss 4 -t 8 -i police-operation-siren-144229.mp3 \
+  -filter_complex "[0:a]adelay=1500|1500,volume=1.0[a0];[1:a]volume=0.3[a1];[a0][a1]amix=inputs=2:duration=longest" \
+  alarm.mp3 -y
