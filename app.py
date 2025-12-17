@@ -67,7 +67,7 @@ class AlarmState:
         self.loop_thread = None
         self.delayed_stop_thread = None
         self.loop_end_time = None
-        self.volume = 0.7  # Default volume (0.0 to 1.0)
+        self.volume = 1.0  # Default volume (0.0 to 1.0)
 
     def set_status(self, status):
         with self.lock:
@@ -311,7 +311,7 @@ def api_stop_delayed():
 def api_volume():
     """Set volume."""
     data = request.get_json() or {}
-    volume = data.get("volume", 70)
+    volume = data.get("volume", 100)
     success, message = set_volume(volume)
     return jsonify({"success": success, "message": message, "volume": volume})
 
