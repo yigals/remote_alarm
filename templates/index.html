@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔔 Remote Alarm</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #0f3460;
+            --accent: #e94560;
+            --accent-hover: #ff6b6b;
+            --success: #00d9a0;
+            --warning: #ffc107;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        .status-idle { background: var(--bg-card); }
+        .status-playing { background: var(--success); color: #000; }
+        .status-looping { background: var(--accent); animation: pulse 1.5s infinite; }
+        .status-stopping_soon { background: var(--warning); color: #000; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .remaining {
+            margin-top: 10px;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .card h2 {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            padding: 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button .icon {
+            font-size: 2rem;
+        }
+
+        button .label {
+            font-size: 0.9rem;
+        }
+
+        .btn-play {
+            background: linear-gradient(135deg, #00d9a0, #00b894);
+            color: #000;
+        }
+
+        .btn-loop {
+            background: linear-gradient(135deg, #e94560, #c73e54);
+            color: #fff;
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: #fff;
+        }
+
+        .btn-delayed {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: #000;
+        }
+
+        .volume-section {
+            margin-top: 20px;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .volume-control span {
+            font-size: 1.5rem;
+        }
+
+        .volume-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--bg-secondary);
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .volume-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .volume-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: none;
+        }
+
+        .volume-value {
+            min-width: 50px;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-card);
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.4);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.error {
+            background: var(--accent);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔔 Remote Alarm</h1>
+            <div id="status" class="status-badge status-idle">Idle</div>
+            <div id="remaining" class="remaining"></div>
+        </header>
+
+        <div class="card">
+            <h2>Controls</h2>
+            <div class="button-grid">
+                <button class="btn-play" onclick="sendCommand('play')">
+                    <span class="icon">▶️</span>
+                    <span class="label">Play Once</span>
+                </button>
+                <button class="btn-loop" onclick="confirmLoop()">
+                    <span class="icon">🔁</span>
+                    <span class="label">Loop 6 Hours</span>
+                </button>
+                <button class="btn-stop" onclick="sendCommand('stop')">
+                    <span class="icon">⏹️</span>
+                    <span class="label">Stop Now</span>
+                </button>
+                <button class="btn-delayed" onclick="sendCommand('stop-delayed')">
+                    <span class="icon">⏱️</span>
+                    <span class="label">Stop in 10s</span>
+                </button>
+            </div>
+
+            <div class="volume-section">
+                <h2>Volume</h2>
+                <div class="volume-control">
+                    <span>🔈</span>
+                    <input type="range" class="volume-slider" id="volume" min="0" max="100" value="70">
+                    <span class="volume-value" id="volume-value">70%</span>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            Alarm Server • Accessible on LAN
+        </footer>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const statusEl = document.getElementById('status');
+        const remainingEl = document.getElementById('remaining');
+        const volumeSlider = document.getElementById('volume');
+        const volumeValue = document.getElementById('volume-value');
+        const toast = document.getElementById('toast');
+
+        // Update status periodically
+        async function updateStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+
+                statusEl.textContent = data.status.replace('_', ' ');
+                statusEl.className = 'status-badge status-' + data.status;
+
+                if (data.remaining) {
+                    remainingEl.textContent = '⏱️ ' + data.remaining + ' remaining';
+                } else {
+                    remainingEl.textContent = '';
+                }
+
+                // Sync volume slider
+                if (data.volume !== undefined) {
+                    volumeSlider.value = data.volume;
+                    volumeValue.textContent = data.volume + '%';
+                }
+            } catch (e) {
+                console.error('Failed to fetch status:', e);
+            }
+        }
+
+        // Send command to server
+        async function sendCommand(endpoint) {
+            try {
+                const res = await fetch('/api/' + endpoint, { method: 'POST' });
+                const data = await res.json();
+                showToast(data.message, !data.success);
+                updateStatus();
+            } catch (e) {
+                showToast('Connection error', true);
+            }
+        }
+
+        // Confirm before starting 6-hour loop
+        function confirmLoop() {
+            if (confirm('Start alarm loop for 6 hours?')) {
+                sendCommand('loop');
+            }
+        }
+
+        // Volume control
+        let volumeTimeout;
+        volumeSlider.addEventListener('input', () => {
+            volumeValue.textContent = volumeSlider.value + '%';
+
+            clearTimeout(volumeTimeout);
+            volumeTimeout = setTimeout(async () => {
+                try {
+                    await fetch('/api/volume', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ volume: parseInt(volumeSlider.value) })
+                    });
+                } catch (e) {
+                    console.error('Failed to set volume:', e);
+                }
+            }, 200);
+        });
+
+        // Toast notifications
+        function showToast(message, isError = false) {
+            toast.textContent = message;
+            toast.className = 'toast show' + (isError ? ' error' : '');
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+
+        // Initial load and periodic updates
+        updateStatus();
+        setInterval(updateStatus, 2000);
+    </script>
+</body>
+</html>
