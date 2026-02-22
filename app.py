@@ -30,7 +30,7 @@ USERNAME = "admin"
 PASSWORD = "alarm123"
 
 # Path to your alarm sound file
-ALARM_FILE = "alarm.mp3"
+ALARM_FILE = "alarm2.mp3"
 
 # Server settings
 HOST = "0.0.0.0"  # Listen on all interfaces for LAN access
